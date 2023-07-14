@@ -5,9 +5,9 @@ import sys
 app = flask.Flask(__name__)
 
 
-@app.route('/')
-def root() -> flask.Response:
-  return flask.make_response("", 200)
+@app.route('/', methods=["GET", "OPTIONS"])
+def root():
+  return "OK"
 
 
 
