@@ -1,7 +1,7 @@
 import flask
 import sys
 
-from methods.internal_methods import subprocessRun
+from methods.subprocess_run import subprocessRun
 
 app = flask.Flask(__name__)
 
@@ -17,7 +17,12 @@ def getData():
   # getting container count
   completed_command = subprocessRun("docker ps -a --format {{.Names}}")
   container_count = completed_command.stdout.decode().count("\n")
-  output.update({"container-count": container_count})
+  output.update({"total-container-count": container_count})
+
+  # getting running container count
+  completed_command = subprocessRun("docker ps --format {{.Names}}")
+  running_container_count = completed_command.stdout.decode().count("\n")
+  output.update({"running-container-count": running_container_count})
 
   return flask.make_response(output, 200)
 
