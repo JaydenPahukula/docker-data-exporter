@@ -9,11 +9,15 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 
-@app.route('/', methods=["GET", "OPTIONS"])
+@app.route('/', methods=["GET"])
 @cross_origin()
 def root():
   return "OK"
 
+@app.route('/search', methods=["POST"])
+@cross_origin()
+def search():
+  return '["option1","option2","option3"]'
 
 
 
