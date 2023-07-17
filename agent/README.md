@@ -14,6 +14,7 @@ http://placeholder.url/get-data
 
 ``` JSON
 {
-  "container-count": 15
+  "total-container-count": 1,
+  "running-container-count": 0
 }
 ```
