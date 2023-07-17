@@ -1,4 +1,5 @@
 import flask
+import json
 import sys
 
 from methods.subprocess_run import subprocessRun
@@ -14,17 +15,24 @@ def root():
 def getData():
   output = {}
 
+  # checking if docker is running
+  completed_command = subprocessRun("systemctl is-active docker")
+  docker_running = completed_command.stdout.decode().strip() == "active"
+  output["docker-running"] = docker_running
+  if not docker_running:
+    return flask.make_response(json.dumps(output), 200)
+
   # getting container count
   completed_command = subprocessRun("docker ps -a --format {{.Names}}")
-  container_count = completed_command.stdout.decode().count("\n")
-  output.update({"total-container-count": container_count})
+  total_container_count = completed_command.stdout.decode().count("\n")
+  output["total-container-count"] = total_container_count
 
   # getting running container count
   completed_command = subprocessRun("docker ps --format {{.Names}}")
   running_container_count = completed_command.stdout.decode().count("\n")
-  output.update({"running-container-count": running_container_count})
+  output["running-container-count"] = running_container_count
 
-  return flask.make_response(output, 200)
+  return flask.make_response(json.dumps(output), 200)
 
 
 
