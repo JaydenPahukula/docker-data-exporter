@@ -6,7 +6,7 @@ import threading
 from methods.scrape import scraper
 
 SCRAPEINTERVAL = 60 # seconds
-IPLIST = ["127.0.0.1:5000"]
+IPLIST = ["127.0.0.1:5001"]
 
 app = flask.Flask(__name__)
 cors = CORS(app)
@@ -28,9 +28,9 @@ def search():
 if __name__ == '__main__':
   print("\n\n\n")
 
+  print(" * Starting scraper thread")
   logThread = threading.Thread(target=scraper, args=(IPLIST, SCRAPEINTERVAL), daemon=True)
   logThread.start()
-  print(" * Starting scraper thread")
 
   port = 5000 # default port
   # getting port argument
