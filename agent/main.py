@@ -21,6 +21,12 @@ def getData():
   output["docker-running"] = docker_running
   if not docker_running:
     return flask.make_response(json.dumps(output), 200)
+  
+  # getting docker version
+  completed_command = subprocessRun("docker --version")
+  docker_version = completed_command.stdout.decode().strip()[15:]
+  docker_version = docker_version.replace(", ", " (", 1) + ")"
+  output["docker-version"] = docker_version
 
   # getting container count
   completed_command = subprocessRun("docker ps -a --format {{.Names}}")

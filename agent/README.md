@@ -16,6 +16,7 @@ http://placeholder.url/get-data
 ``` JSON
 {
   "docker-running": true,
+  "docker-version": "24.0.4 (build 3713ee1)",
   "total-container-count": 1,
   "running-container-count": 0
 }
