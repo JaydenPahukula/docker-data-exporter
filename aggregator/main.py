@@ -17,31 +17,31 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/', methods=["GET"])
 @cross_origin()
 def root():
-  return "OK"
+    return "OK"
 
 @app.route('/search', methods=["POST"])
 @cross_origin()
 def search():
-  return '["option1","option2","option3"]'
+  	return '["option1","option2","option3"]'
 
 @app.route('/query', methods=["POST"])
 @cross_origin()
 def query():
-  return handle_query(flask.request.json)
+    return handle_query(flask.request.json)
 
 if __name__ == '__main__':
-  print("\n\n\n")
+    print("\n\n\n")
 
-  print(" * Starting scraper thread")
-  logThread = threading.Thread(target=scraper, args=(IPLIST, SCRAPEINTERVAL), daemon=True)
-  logThread.start()
+    print(" * Starting scraper thread")
+    logThread = threading.Thread(target=scraper, args=(IPLIST, SCRAPEINTERVAL), daemon=True)
+    logThread.start()
 
-  port = 5000 # default port
-  # getting port argument
-  for i in range(len(sys.argv)):
-    if (sys.argv[i] == "-p" or sys.argv[i] == "-port") and i + 1 < len(sys.argv):
-      try:                port = int(sys.argv[i + 1])
-      except ValueError:  pass
-      finally:            break
+    port = 5000 # default port
+    # getting port argument
+    for i in range(len(sys.argv)):
+        if (sys.argv[i] == "-p" or sys.argv[i] == "-port") and i + 1 < len(sys.argv):
+            try:                port = int(sys.argv[i + 1])
+            except ValueError:  pass
+            finally:            break
 
-  app.run(port=port)
+    app.run(port=port)
