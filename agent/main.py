@@ -15,6 +15,10 @@ def root():
 def getData():
     output = {}
 
+    # getting hostname
+    completed_command = subprocessRun("hostname")
+    output["hostname"] = completed_command.stdout.decode().strip()
+
     # checking if docker is running
     completed_command = subprocessRun("systemctl is-active docker")
     docker_running = completed_command.stdout.decode().strip() == "active"
@@ -28,15 +32,47 @@ def getData():
     docker_version = docker_version.replace(", ", " (", 1) + ")"
     output["docker-version"] = docker_version
 
-    # getting container count
-    completed_command = subprocessRun("docker ps -a --format {{.Names}}")
-    total_container_count = completed_command.stdout.decode().count("\n")
-    output["total-container-count"] = total_container_count
+    # getting docker info
+    completed_command = subprocessRun("docker info --format json")
+    docker_info = json.loads(completed_command.stdout.decode())
 
-    # getting running container count
-    completed_command = subprocessRun("docker ps --format {{.Names}}")
-    running_container_count = completed_command.stdout.decode().count("\n")
-    output["running-container-count"] = running_container_count
+    output["swarm-state"] = docker_info["Swarm"]["LocalNodeState"]
+    output["image-count"] = docker_info["Images"]
+    output["total-container-count"] = docker_info["Containers"]
+    output["running-container-count"] = docker_info["ContainersRunning"]
+
+    # getting specific container info
+    output["containers"] = []
+    completed_command = subprocessRun("docker ps -a --format json")
+    statuses = completed_command.stdout.decode().split("\n")
+    statuses = [json.loads(s) for s in statuses if s != ""]
+    for status in statuses:
+        container_output = {
+            "id": status['ID'],
+            "name": status["Names"],
+            "image": status["Image"],
+            "user": status["Names"].split("--")[-1],
+            "state": status["State"],
+            "status": status["Status"]
+        }
+
+        completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
+        container_stats = json.loads(completed_command.stdout.decode())
+        
+        network_in, network_out = (x[:-1] for x in container_stats["NetIO"].split(" / "))
+        block_in, block_out = (x[:-1] for x in container_stats["BlockIO"].split(" / "))
+        
+        container_output.update({
+            "cpu_percent": container_stats["CPUPerc"][:-1],
+            "mem_percent": container_stats["MemPerc"][:-1],
+            "network_bytes_in": network_in,
+            "network_bytes_out": network_out,
+            "block_bytes_in": block_in,
+            "block_bytes_out": block_out
+        })
+
+        output["containers"].append(container_output)
+
 
     return flask.make_response(json.dumps(output), 200)
 
