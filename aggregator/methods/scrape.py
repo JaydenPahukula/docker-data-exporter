@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 from requests import get
 from subprocess import run
 import time
@@ -19,27 +19,23 @@ def scrape(ip:str):
 
 
 
-def scraper(iplist:list, intervalSeconds:int):
-
-    interval = datetime.timedelta(seconds=intervalSeconds)
-    last = datetime.datetime.now() - interval
+def scraper(ip_list:list, interval_seconds:int):
     
-    while 1:
-        curr = datetime.datetime.now()
-        if curr - interval > last:
-            last = curr
+    while True:
+        start_time = datetime.now()
 
-            # scrape all data and format
-            feilds = [scrape(ip) for ip in iplist]
-            unixTime = int(time.mktime(curr.timetuple()))
-            datapoints = [f"{iplist[i]} {feilds[i]} {unixTime}" for i in range(len(iplist))]
-            
-            # write to database
-            completedResponse = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(datapoints) + "\"",
-                                    capture_output=True, shell=True)
-            if completedResponse.returncode != 0:
-                print("Error writing to database\n ", completedResponse.stdout.decode(), "\n ", completedResponse.stderr.decode())
+        # scrape all data and format
+        feilds = [scrape(ip) for ip in ip_list]
+        unix_time = int(time.mktime(datetime.now().timetuple()))
+        datapoints = [f"{ip_list[i]} {feilds[i]} {unix_time}" for i in range(len(ip_list))]
         
-        time.sleep(0.01)
+        # write to database
+        completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(datapoints) + "\"",
+                                capture_output=True, shell=True)
+        if completed_response.returncode != 0:
+            pass#print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
+        
+        run_time = (datetime.now() - start_time).total_seconds()
+        time.sleep(interval_seconds - run_time)
 
     return
