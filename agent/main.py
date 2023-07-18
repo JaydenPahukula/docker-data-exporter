@@ -52,6 +52,7 @@ def getData():
             "id": status['ID'],
             "name": status["Names"],
             "image": status["Image"],
+            "image-label": status["Labels"],
             "user": status["Names"].split("--")[-1],
             "state": status["State"],
             "status": status["Status"]
