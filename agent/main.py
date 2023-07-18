@@ -37,7 +37,7 @@ def getData():
     completed_command = subprocessRun("docker info --format json")
     docker_info = json.loads(completed_command.stdout.decode())
 
-    output["swarm-state"] = docker_info["Swarm"]["LocalNodeState"]
+    output["swarm-mode"] = docker_info["Swarm"]["LocalNodeState"] == "active"
     output["image-count"] = docker_info["Images"]
     output["total-container-count"] = docker_info["Containers"]
     output["running-container-count"] = docker_info["ContainersRunning"]
@@ -59,7 +59,7 @@ def getData():
         }
 
         created_at = datetime.strptime(status["CreatedAt"], "%Y-%m-%d %H:%M:%S %z %Z")
-        container_output["created-at"] = created_at.timestamp()
+        container_output["created-at"] = round(created_at.timestamp())
 
         completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
         container_stats = json.loads(completed_command.stdout.decode())
