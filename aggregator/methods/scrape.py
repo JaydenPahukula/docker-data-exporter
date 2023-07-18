@@ -52,11 +52,12 @@ def scraper(ip_list:list, interval_seconds:int) -> None:
         query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list)) if data[i] != None]
 
         # write to database
-        print(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"")
         completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
             print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
+        else:
+            print(f"Wrote data from {len(query_strings)} agents")
         
         run_time = (datetime.now() - start_time).total_seconds()
         time.sleep(interval_seconds - run_time)
