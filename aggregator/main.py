@@ -22,7 +22,7 @@ def root():
 @app.route('/search', methods=["POST"])
 @cross_origin()
 def search():
-  	return '["option1","option2","option3"]'
+    return '["total-container-count","running-container-count","option3"]'
 
 @app.route('/query', methods=["POST"])
 @cross_origin()
