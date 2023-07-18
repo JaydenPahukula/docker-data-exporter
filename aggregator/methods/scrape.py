@@ -15,8 +15,16 @@ def scrape(ip:str) -> str:
         return ""
 
     data = response.json()
-    return (f"total-container-count={data['total-container-count']}u,"
-            f"running-container-count={data['running-container-count']}u")
+    print(data)
+    queryString = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
+    if data['docker-running']:
+        queryString += f",docker-version=\"{data['docker-version']}\""
+        queryString += f",swarm-mode={data['swarm-mode']}"
+        queryString += f",image-count={data['image-count']}"
+        queryString += f",total-container-count={data['total-container-count']}"
+        queryString += f",running-container-count={data['running-container-count']}"
+    
+    return queryString
 
 
 def scrape_wrapper(ip:str, data_arr:list, index:int) -> None:
@@ -41,10 +49,10 @@ def scraper(ip_list:list, interval_seconds:int) -> None:
             scraper_threads[i].join()
 
         unix_time = int(time.mktime(datetime.now().timetuple()))
-        datapoints = [f"{ip_list[i]} {data[i]} {unix_time}" for i in range(len(ip_list))]
+        query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list))]
         
         # write to database
-        completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(datapoints) + "\"",
+        completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
             print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())

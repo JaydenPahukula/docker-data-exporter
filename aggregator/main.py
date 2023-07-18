@@ -7,7 +7,7 @@ from methods.scrape import scraper
 from methods.handle_query import handle_query
 
 SCRAPEINTERVAL = 60 # seconds
-IPLIST = ["127.0.0.1:5001"]
+IPLIST = ["127.0.0.1:5001", "10.0.2.8:5000"]
 
 app = flask.Flask(__name__)
 cors = CORS(app)
