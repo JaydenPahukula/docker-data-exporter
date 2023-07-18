@@ -30,12 +30,13 @@ http://placeholder.url/get-data
       "user": "john",
       "state": "exited",
       "status": "Exited (0) About an hour ago",
-      "cpu_percent": "0.00",
-      "mem_percent": "0.00",
-      "network_bytes_in": "0",
-      "network_bytes_out": "0",
-      "block_bytes_in": "0",
-      "block_bytes_out": "0"
+      "created-at": 1689640559.0,
+      "cpu-percent": "0.00",
+      "mem-percent": "0.00",
+      "network-bytes-in": "0",
+      "network-bytes-out": "0",
+      "block-bytes-in": "0",
+      "block-bytes-out": "0"
     },
     {
       "id": "f08aaca7ab91",
@@ -44,12 +45,13 @@ http://placeholder.url/get-data
       "user": "admin",
       "state": "running",
       "status": "Up About an hour",
-      "cpu_percent": "0.03",
-      "mem_percent": "0.26",
-      "network_bytes_in": "656",
-      "network_bytes_out": "0",
-      "block_bytes_in": "0",
-      "block_bytes_out": "0"
+      "created-at": 1688777727.0,
+      "cpu-percent": "0.03",
+      "mem-percent": "0.26",
+      "network-bytes-in": "656",
+      "network-bytes-out": "0",
+      "block-bytes-in": "0",
+      "block-bytes-out": "0"
     }
   ]
 }

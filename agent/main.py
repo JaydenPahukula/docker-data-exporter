@@ -1,3 +1,4 @@
+from datetime import datetime
 import flask
 import json
 import sys
@@ -56,6 +57,9 @@ def getData():
             "status": status["Status"]
         }
 
+        created_at = datetime.strptime(status["CreatedAt"], "%Y-%m-%d %H:%M:%S %z %Z")
+        container_output["created-at"] = created_at.timestamp()
+
         completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
         container_stats = json.loads(completed_command.stdout.decode())
         
@@ -65,11 +69,14 @@ def getData():
         container_output.update({
             "cpu_percent": container_stats["CPUPerc"][:-1],
             "mem_percent": container_stats["MemPerc"][:-1],
-            "network_bytes_in": network_in,
-            "network_bytes_out": network_out,
-            "block_bytes_in": block_in,
-            "block_bytes_out": block_out
+            "network-bytes-in": network_in,
+            "network-bytes-out": network_out,
+            "block-bytes-in": block_in,
+            "block-bytes-out": block_out
         })
+
+        completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
+        container_stats = json.loads(completed_command.stdout.decode())
 
         output["containers"].append(container_output)
 
