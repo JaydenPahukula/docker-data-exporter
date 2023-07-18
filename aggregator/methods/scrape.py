@@ -1,11 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from requests import get
 from subprocess import run
+import threading
 import time
 
 BUCKET = "main"
 
-def scrape(ip:str):
+def scrape(ip:str) -> str:
 
     # http get request
     response = get(f"http://{ip}/get-data")
@@ -18,22 +19,35 @@ def scrape(ip:str):
             f"running-container-count={data['running-container-count']}u")
 
 
+def scrape_wrapper(ip:str, data_arr:list, index:int) -> None:
+    data_arr[index] = scrape(ip)
 
-def scraper(ip_list:list, interval_seconds:int):
-    
+
+def scraper(ip_list:list, interval_seconds:int) -> None:
     while True:
         start_time = datetime.now()
 
         # scrape all data and format
-        feilds = [scrape(ip) for ip in ip_list]
+        data = [None] * len(ip_list)
+        scraper_threads = []
+        # starting all scraper threads
+        for i in range(len(ip_list)):
+            new_thread = threading.Thread(target=scrape_wrapper, args=(ip_list[i], data, i))
+            scraper_threads.append(new_thread)
+            new_thread.start()
+        
+        # waiting for scraper threads to complete
+        for i in range(len(scraper_threads)):
+            scraper_threads[i].join()
+
         unix_time = int(time.mktime(datetime.now().timetuple()))
-        datapoints = [f"{ip_list[i]} {feilds[i]} {unix_time}" for i in range(len(ip_list))]
+        datapoints = [f"{ip_list[i]} {data[i]} {unix_time}" for i in range(len(ip_list))]
         
         # write to database
         completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(datapoints) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
-            pass#print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
+            print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
         
         run_time = (datetime.now() - start_time).total_seconds()
         time.sleep(interval_seconds - run_time)
