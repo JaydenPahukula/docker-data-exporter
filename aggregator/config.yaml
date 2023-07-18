@@ -1,0 +1,10 @@
+---
+# scrape interval in seconds
+scrape-interval: 60
+
+# list of IP addresses of all servers to
+server-ips:
+  - "127.0.0.1:5001"
+  - "10.0.2.8:5000"
+
+...
