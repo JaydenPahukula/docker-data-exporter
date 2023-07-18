@@ -68,12 +68,12 @@ def getData():
         block_in, block_out = (x[:-1] for x in container_stats["BlockIO"].split(" / "))
         
         container_output.update({
-            "cpu_percent": container_stats["CPUPerc"][:-1],
-            "mem_percent": container_stats["MemPerc"][:-1],
-            "network-bytes-in": network_in,
-            "network-bytes-out": network_out,
-            "block-bytes-in": block_in,
-            "block-bytes-out": block_out
+            "cpu_percent": float(container_stats["CPUPerc"][:-1]),
+            "mem_percent": float(container_stats["MemPerc"][:-1]),
+            "network-bytes-in": int(network_in),
+            "network-bytes-out": int(network_out),
+            "block-bytes-in": int(block_in),
+            "block-bytes-out": int(block_out)
         })
 
         completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
