@@ -15,15 +15,15 @@ def scrape(ip:str) -> str:
         return ""
 
     data = response.json()
-    print(data)
-    queryString = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
+
+    queryString = f"{ip},hostname=\\\"{data['hostname']}\\\" docker-running={data['docker-running']}"
     if data['docker-running']:
-        queryString += f",docker-version=\"{data['docker-version']}\""
+        queryString += f",docker-version=\\\"{data['docker-version']}\\\""
         queryString += f",swarm-mode={data['swarm-mode']}"
-        queryString += f",image-count={data['image-count']}"
-        queryString += f",total-container-count={data['total-container-count']}"
-        queryString += f",running-container-count={data['running-container-count']}"
-    
+        queryString += f",image-count={data['image-count']}u"
+        queryString += f",total-container-count={data['total-container-count']}u"
+        queryString += f",running-container-count={data['running-container-count']}u"
+
     return queryString
 
 
@@ -49,9 +49,10 @@ def scraper(ip_list:list, interval_seconds:int) -> None:
             scraper_threads[i].join()
 
         unix_time = int(time.mktime(datetime.now().timetuple()))
-        query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list))]
-        
+        query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list)) if data[i] != None]
+
         # write to database
+        print(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"")
         completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
