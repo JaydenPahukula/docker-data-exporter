@@ -4,6 +4,7 @@ import sys
 import threading
 
 from methods.scrape import scraper
+from methods.handle_query import handle_query
 
 SCRAPEINTERVAL = 60 # seconds
 IPLIST = ["127.0.0.1:5001"]
@@ -23,7 +24,10 @@ def root():
 def search():
   return '["option1","option2","option3"]'
 
-
+@app.route('/query', methods=["POST"])
+@cross_origin()
+def query():
+  return handle_query(flask.request.json)
 
 if __name__ == '__main__':
   print("\n\n\n")
