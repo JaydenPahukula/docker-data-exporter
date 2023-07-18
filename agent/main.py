@@ -82,7 +82,7 @@ def getData():
         output["containers"].append(container_output)
 
 
-    return flask.make_response(json.dumps(output), 200)
+    return flask.make_response(json.dumps(output) + "\n", 200)
 
 
 
