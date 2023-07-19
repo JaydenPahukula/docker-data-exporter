@@ -42,8 +42,8 @@ echo done
 
 # extracting tar archive
 echo -n "  > Extracting agent... "
-sudo rm -rf "$path-tmp/"
-mkdir "$path-tmp/"
+sudo rm -rf "$path-tmp/" &> /dev/null
+mkdir "$path-tmp/" &> /dev/null
 tar -sxf ./repo.tar -C $path-tmp/ --strip-components=1 &> /dev/null
 sudo rm repo.tar
 # extracting agent from repo
@@ -88,15 +88,15 @@ echo done
 
 # installing and configing systemd
 echo -n "  > Configuring systemd... "
-sudo yum install -y systemd &> dev/null
+sudo yum install -y systemd &> /dev/null
 echo done
 
 # configuring service
 echo -n "  > Configuring agent service... "
-sudo rm /etc/systemd/system/docker-dash-agent.service
+sudo rm /etc/systemd/system/docker-dash-agent.service &> /dev/null
 sudo tee -a /etc/systemd/system/docker-dash-agent.service > /dev/null <<- END
     [Unit]
-    Description=My test service
+    Description=Docker dash grafana agent
     After=multi-user.target
     
     [Service]
@@ -109,7 +109,7 @@ sudo tee -a /etc/systemd/system/docker-dash-agent.service > /dev/null <<- END
 END
 sudo systemctl daemon-reload
 sudo systemctl enable docker-dash-agent.service &> /dev/null
-sudo systemctl start docker-dash-agent.service
+sudo systemctl start docker-dash-agent.service &> /dev/null
 echo done
 
 echo ""
