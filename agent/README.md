@@ -1,8 +1,13 @@
-# Docker Dash Grafana Agent API
+# Docker Dash Grafana Agent
 
 ## Overview
 
-This agent functions as an API with one endpoint, `get-data`. This will return a JSON object with the all the available data.
+This agent functions as an API with one endpoint, `get-data`. This will return a JSON object with the all the available data. This agent functions on port 5050 by default after installation.
+
+## Installation
+
+
+# API Documentation
 
 ## Usage
 
