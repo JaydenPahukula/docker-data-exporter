@@ -25,6 +25,8 @@ def root():
 @app.route('/search', methods=["POST"])
 @cross_origin()
 def search():
+    if flask.request.json["target"] == "hostname":
+        return get_hostnames()
     return '["hostname","docker-running","docker-version","swarm-mode","image-count","total-container-count","running-container-count"]'
 
 @app.route('/query', methods=["POST"])

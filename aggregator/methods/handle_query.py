@@ -14,11 +14,9 @@ def get_hostnames():
                        |> range(start:0)
                        |> keep(columns: [\"hostname\"])
                        |> distinct(column: \"hostname\")"""
-    completedResponse = run(f"influx query \'{queryString}\'")
-    lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n")]
-    for line in lines:
-        print(line)
-    return ["test1", "test2"]
+    completedResponse = run(f"influx query \'{queryString}\' --raw", capture_output=True, shell=True)
+    lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n") if line != ""]
+    return [line[4] for line in lines[4:]]
 
 
 def parse_time(s:str):
