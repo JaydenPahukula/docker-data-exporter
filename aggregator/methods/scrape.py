@@ -16,7 +16,7 @@ def scrape(ip:str) -> str:
 
     data = response.json()
 
-    queryString = f"{ip},hostname=\\\"{data['hostname']}\\\" docker-running={data['docker-running']}"
+    queryString = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
     if data['docker-running']:
         queryString += f",docker-version=\\\"{data['docker-version']}\\\""
         queryString += f",swarm-mode={data['swarm-mode']}"
@@ -52,11 +52,12 @@ def scraper(ip_list:list, interval_seconds:int) -> None:
         query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list)) if data[i] != None]
 
         # write to database
-        print(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"")
         completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
             print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
+        else:
+            print(f"Wrote data from {len(query_strings)} agents")
         
         run_time = (datetime.now() - start_time).total_seconds()
         time.sleep(interval_seconds - run_time)

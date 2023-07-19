@@ -6,7 +6,7 @@ import threading
 import yaml
 
 from methods.scrape import scraper
-from methods.handle_query import handle_query
+from methods.handle_query import handle_query, get_hostnames
 
 SCRAPE_INTERVAL = 600 # (seconds)
 IP_LIST = []
@@ -25,12 +25,22 @@ def root():
 @app.route('/search', methods=["POST"])
 @cross_origin()
 def search():
-    return '["total-container-count","running-container-count","option3"]'
+    return '["hostname","docker-running","docker-version","swarm-mode","image-count","total-container-count","running-container-count"]'
 
 @app.route('/query', methods=["POST"])
 @cross_origin()
 def query():
     return handle_query(flask.request.json)
+
+@app.route('/tag-keys', methods=["POST"])
+@cross_origin()
+def tagkeys():
+    return ["hostname"]
+
+@app.route('/tag-values', methods=["POST"])
+@cross_origin()
+def tagvals():
+    return get_hostnames()
 
 if __name__ == '__main__':
     print("\n\n\n")
