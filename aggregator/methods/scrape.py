@@ -16,7 +16,7 @@ def scrape(ip:str) -> str:
 
     data = response.json()
 
-    queryString = f"{ip},hostname=\\\"{data['hostname']}\\\" docker-running={data['docker-running']}"
+    queryString = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
     if data['docker-running']:
         queryString += f",docker-version=\\\"{data['docker-version']}\\\""
         queryString += f",swarm-mode={data['swarm-mode']}"
