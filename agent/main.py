@@ -4,6 +4,7 @@ import json
 import sys
 
 from methods.subprocess_run import subprocessRun
+from methods.parse_units import parseByteUnits
 
 app = flask.Flask(__name__)
 
@@ -64,12 +65,12 @@ def getData():
         completed_command = subprocessRun("docker stats --no-stream --format json " + status["ID"])
         container_stats = json.loads(completed_command.stdout.decode())
         
-        network_in, network_out = (x[:-1] for x in container_stats["NetIO"].split(" / "))
-        block_in, block_out = (x[:-1] for x in container_stats["BlockIO"].split(" / "))
+        network_in, network_out = (parseByteUnits(x) for x in container_stats["NetIO"].split(" / "))
+        block_in, block_out = (parseByteUnits(x) for x in container_stats["BlockIO"].split(" / "))
         
         container_output.update({
-            "cpu_percent": container_stats["CPUPerc"][:-1],
-            "mem_percent": container_stats["MemPerc"][:-1],
+            "cpu_percent": float(container_stats["CPUPerc"][:-1]),
+            "mem_percent": float(container_stats["MemPerc"][:-1]),
             "network-bytes-in": network_in,
             "network-bytes-out": network_out,
             "block-bytes-in": block_in,
