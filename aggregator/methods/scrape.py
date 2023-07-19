@@ -1,12 +1,16 @@
 from datetime import datetime
+import os
 from requests import get, exceptions
 from subprocess import run
 import threading
 import time
+import yaml
 
-BUCKET = "main"
+SERVER_BUCKET = ""
+CONTAINER_BUCKET = ""
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def scrape(ip:str) -> str:
+def scrape(ip:str):
 
     # http get request
     try:
@@ -36,6 +40,13 @@ def scrape_wrapper(ip:str, data_arr:list, index:int) -> None:
 
 
 def scraper(ip_list:list, interval_seconds:int) -> None:
+
+    # reading config file
+    with open(os.path.dirname(CURRENT_DIR) + "/config.yaml", "r") as config_file:
+        config = yaml.safe_load(config_file)
+    SERVER_BUCKET = config["server-bucket-name"]
+    CONTAINER_BUCKET = config["container-bucket-name"]
+
     while True:
         start_time = datetime.now()
 
@@ -54,12 +65,13 @@ def scraper(ip_list:list, interval_seconds:int) -> None:
 
         unix_time = int(time.mktime(datetime.now().timetuple()))
         query_strings = [f"{data[i]} {unix_time}" for i in range(len(ip_list)) if data[i] != None]
+        print("Query strings:", query_strings)
 
-        # write to database
-        completed_response = run(f"influx write --bucket {BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
+        # write to server database
+        completed_response = run(f"influx write --bucket {SERVER_BUCKET} --precision s \"" + '\n'.join(query_strings) + "\"",
                                 capture_output=True, shell=True)
         if completed_response.returncode != 0:
-            print("Error writing to database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
+            print("Error writing to server database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
         else:
             print(f"Wrote data from {len(query_strings)} agents")
         
