@@ -7,27 +7,32 @@ import time
 BUCKET = "main"
 
 
+
+# WARNING incomplete!!!!
+def get_hostnames():
+    queryString = f"""from(bucket: \"{BUCKET}\")
+                       |> range(start:0)
+                       |> keep(columns: [\"hostname\"])
+                       |> distinct(column: \"hostname\")"""
+    completedResponse = run(f"influx query \'{queryString}\'")
+    lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n")]
+    for line in lines:
+        print(line)
+    return ["test1", "test2"]
+
+
 def parse_time(s:str):
     # convert UTC ISO time str into unix milliseconds
     tdiff = datetime.utcnow() - datetime.now()
     return int(datetime.timestamp(datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")) - tdiff.total_seconds()) * 1000
 
 
-# WARNING incomplete!!!!
-def get_hostnames():
-    hostnames = []
-    queryString = "from(bucket: \"{BUCKET}\") |> "
-    return ["test1", "test2"]
-
-
 def handle_query(request):
     """
     
     """
-    print("Received query")
     startTime = request["range"]["from"]
     endTime = request["range"]["to"]
-
     output = []
     for target in request["targets"]:
 

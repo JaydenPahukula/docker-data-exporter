@@ -1,5 +1,5 @@
 from datetime import datetime
-from requests import get
+from requests import get, exceptions
 from subprocess import run
 import threading
 import time
@@ -9,10 +9,14 @@ BUCKET = "main"
 def scrape(ip:str) -> str:
 
     # http get request
-    response = get(f"http://{ip}/get-data")
+    try:
+        response = get(f"http://{ip}/get-data")
+    except exceptions.ConnectionError:
+        print(f"Couldn't connect to agent at {ip}")
+        return None
     if response.status_code != 200:
-        print(f"Something went wrong while scraping {ip}...\n", response.text)
-        return ""
+        print(f"Something went wrong while scraping {ip}:\n", response.text)
+        return None
 
     data = response.json()
 
