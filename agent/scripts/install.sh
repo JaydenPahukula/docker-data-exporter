@@ -111,6 +111,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable docker-data-agent.service &> /dev/null
 sudo systemctl start docker-data-agent.service &> /dev/null
 sleep 1
+sudo systemctl restart docker-data-agent.service &> /dev/null
 echo done
 
 echo ""
