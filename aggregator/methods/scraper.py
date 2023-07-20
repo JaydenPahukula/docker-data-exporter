@@ -31,7 +31,7 @@ def scrapeWrapper(ip:str , data_arr: list, index: int) -> None:
     data_arr[index] = scrape(ip)
 
 
-def parseServerData(ip: str, data: dict, timestamp: int) -> str:
+def parseServerData(ip: str, data: dict) -> str:
 
     output = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
     if data['docker-running']:
@@ -40,9 +40,9 @@ def parseServerData(ip: str, data: dict, timestamp: int) -> str:
         output += f",image-count={data['image-count']}u"
         output += f",total-container-count={data['total-container-count']}u"
         output += f",running-container-count={data['running-container-count']}u"
-    return output + " " + str(timestamp)
+    return output
 
-def parseContainerData(ip: str, data: dict, timestamp: int) -> list:
+def parseContainerData(ip: str, data: dict) -> list:
 
     output_arr = []
     for container in data["containers"]:
@@ -66,18 +66,16 @@ def parseContainerData(ip: str, data: dict, timestamp: int) -> list:
 
             fields.append(field)
         
-        output_arr.append(f"{container['name']},hostname={data['hostname']} {','.join(fields)} {timestamp}")
+        output_arr.append(f"{container['name']},hostname={data['hostname']} {','.join(fields)}")
     return output_arr
 
-def collect_data(ip_list: list):
+def collectData(ip_list: list):
 
-    timestamp = int(time.mktime(datetime.now().timetuple()))
-
-    server_data = [None] * len(ip_list)
+    raw_data = [None] * len(ip_list)
     scraper_threads = []
     # starting scraper threads
     for i in range(len(ip_list)):
-        new_thread = threading.Thread(target=scrapeWrapper, args=(ip_list[i], server_data, i))
+        new_thread = threading.Thread(target=scrapeWrapper, args=(ip_list[i], raw_data, i))
         scraper_threads.append(new_thread)
         new_thread.start()
     
@@ -85,37 +83,18 @@ def collect_data(ip_list: list):
     for i in range(len(scraper_threads)):
         scraper_threads[i].join()
     
-    # parsing server data
-    parsed_server_data = []
+    # parsing data
+    parsed_data = []
     for i in range(len(ip_list)):
-        if server_data[i] == None: continue
-        parsed_server_data.append(parseServerData(ip_list[i], server_data[i], timestamp))
-
-    # writing to server database
-    completed_response = run(f"influx write --bucket {SERVER_BUCKET} --precision s \"" + '\n'.join(parsed_server_data) + "\"",
-                            capture_output=True, shell=True)
-    if completed_response.returncode != 0:
-        print("Error writing to server database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
-    else:
-        print(f"Wrote data from {len(parsed_server_data)} agents")
+        if raw_data[i] == None: continue
+        parsed_server_data = parseServerData(ip_list[i], raw_data[i])
+        parsed_container_data = parseContainerData(ip_list[i], raw_data[i])
+        parsed_data.append((raw_data[i]["hostname"], parsed_server_data, parsed_container_data))
     
-    # parsing container data
-    parsed_container_data = []
-    for i in range(len(ip_list)):
-        if server_data[i] == None: continue
-        parsed_container_data += parseContainerData(ip_list[i], server_data[i], timestamp)
 
-    # writing to container database
-    completed_response = run(f"influx write --bucket {CONTAINER_BUCKET} --precision s \"" + '\n'.join(parsed_container_data) + "\"",
-                            capture_output=True, shell=True)
-    if completed_response.returncode != 0:
-        print("Error writing to container database\n ", completed_response.stdout.decode(), "\n ", completed_response.stderr.decode())
-    else:
-        print(f"Wrote data from {len(parsed_container_data)} containers")
-
-    return
+    return parsed_data
 
 if __name__ == "__main__":
     print("\n\n\nScraping:")
-    output = collect_data(config["server-ips"])
+    output = collectData(config["server-ips"])
     print("Output:", output)
