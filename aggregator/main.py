@@ -1,5 +1,4 @@
 import flask
-from flask_cors import CORS, cross_origin
 import os
 import sys
 import threading
@@ -8,39 +7,32 @@ import yaml
 from aggregator.methods.scraper import scraper
 from methods.handle_query import handle_query, get_hostnames
 
-SCRAPE_INTERVAL = 600 # (seconds)
+SCRAPE_INTERVAL = 60 # seconds (default)
 IP_LIST = []
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = flask.Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.route('/', methods=["GET"])
-@cross_origin()
 def root():
     return "OK"
 
 @app.route('/search', methods=["POST"])
-@cross_origin()
 def search():
     if flask.request.json["target"] == "hostname":
         return get_hostnames()
     return '["hostname","docker-running","docker-version","swarm-mode","image-count","total-container-count","running-container-count"]'
 
 @app.route('/query', methods=["POST"])
-@cross_origin()
 def query():
     return handle_query(flask.request.json)
 
 @app.route('/tag-keys', methods=["POST"])
-@cross_origin()
 def tagkeys():
     return flask.jsonify({"type":"string", "text":"hostname"})
 
 @app.route('/tag-values', methods=["POST"])
-@cross_origin()
 def tagvals():
     if flask.request.json["key"] != "hostname":
         return "invalid key"
