@@ -25,6 +25,8 @@ def root():
 @app.route('/search', methods=["POST"])
 @cross_origin()
 def search():
+    if flask.request.json["target"] == "hostname":
+        return get_hostnames()
     return '["hostname","docker-running","docker-version","swarm-mode","image-count","total-container-count","running-container-count"]'
 
 @app.route('/query', methods=["POST"])
@@ -35,12 +37,14 @@ def query():
 @app.route('/tag-keys', methods=["POST"])
 @cross_origin()
 def tagkeys():
-    return ["hostname"]
+    return flask.jsonify({"type":"string", "text":"hostname"})
 
 @app.route('/tag-values', methods=["POST"])
 @cross_origin()
 def tagvals():
-    return get_hostnames()
+    if flask.request.json["key"] != "hostname":
+        return "invalid key"
+    return flask.jsonify({"text":hostname for hostname in get_hostnames()})
 
 if __name__ == '__main__':
     print("\n\n\n")

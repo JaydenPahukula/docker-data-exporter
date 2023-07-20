@@ -69,8 +69,8 @@ def getData():
         block_in, block_out = (parseByteUnits(x) for x in container_stats["BlockIO"].split(" / "))
         
         container_output.update({
-            "cpu_percent": float(container_stats["CPUPerc"][:-1]),
-            "mem_percent": float(container_stats["MemPerc"][:-1]),
+            "cpu-percent": float(container_stats["CPUPerc"][:-1]),
+            "mem-percent": float(container_stats["MemPerc"][:-1]),
             "network-bytes-in": network_in,
             "network-bytes-out": network_out,
             "block-bytes-in": block_in,
