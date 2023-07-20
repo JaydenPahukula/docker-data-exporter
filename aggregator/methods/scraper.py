@@ -8,7 +8,7 @@ import yaml
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # reading config file
-with open(os.path.dirname(CURRENT_DIR) + "/config.yaml", "r") as config_file:
+with open(os.path.dirname(CURRENT_DIR) + "/aggregator_config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 SERVER_BUCKET = config["server-bucket-name"]
 CONTAINER_BUCKET = config["container-bucket-name"]
