@@ -10,8 +10,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # reading config file
 with open(os.path.dirname(CURRENT_DIR) + "/aggregator_config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
-SERVER_BUCKET = config["server-bucket-name"]
-CONTAINER_BUCKET = config["container-bucket-name"]
 
 def scrape(ip: str):
 
@@ -31,42 +29,49 @@ def scrapeWrapper(ip:str , data_arr: list, index: int) -> None:
     data_arr[index] = scrape(ip)
 
 
-def parseServerData(ip: str, data: dict) -> str:
+def parseServerData(ip: str, data: dict) -> dict:
 
     output = f"{ip},hostname={data['hostname']} docker-running={data['docker-running']}"
+    output = {
+        "server_ip": ip,
+        "server_hostname": data['hostname'],
+        "server_agent_running": 1,
+        "server_docker_running": int(data['docker-running']),
+    }
     if data['docker-running']:
-        output += f",docker-version=\\\"{data['docker-version']}\\\""
-        output += f",swarm-mode={data['swarm-mode']}"
-        output += f",image-count={data['image-count']}u"
-        output += f",total-container-count={data['total-container-count']}u"
-        output += f",running-container-count={data['running-container-count']}u"
+        output.update({
+            "server_docker_version": data["docker-version"],
+            "server_swarm_mode": int(data["swarm-mode"]),
+            "server_image_count": data["image-count"],
+            "server_total_container_count": data["total-container-count"],
+            "server_running_container_count": data["running-container-count"]
+        })
     return output
 
 def parseContainerData(ip: str, data: dict) -> list:
-
+    if not data['docker-running']:
+        return []
+    
     output_arr = []
     for container in data["containers"]:
-        if not data['docker-running']:
-            continue
-        
-        # adding container data to fields
-        fields = []
-        for key, val in container.items():
-            # skipping container name
-            if key == "name":
-                continue
-
-            field = f"{key}="
-            if type(val) == str:
-                field += "\\\"" + val + "\\\""
-            elif type(val) == int:
-                field += str(val) + "u"
-            else:
-                field += str(val)
-
-            fields.append(field)
-        
-        output_arr.append(f"{container['name']},hostname={data['hostname']} {','.join(fields)}")
+        container_output = {
+            "container_info": {
+                "container_id": container["id"],
+                "container_name": container["name"],
+                "container_image": container["image"],
+                "container_image_label": container["image-label"],
+                "container_user": container["user"],
+                "container_creation_time": datetime.fromtimestamp(container["created-at"]).isoformat(),
+            },
+            "container_state": container["state"],
+            "container_cpu_percent": container["cpu-percent"],
+            "container_mem_percent": container["mem-percent"],
+            "container_network_bytes_in": container["network-bytes-in"],
+            "container_network_bytes_out": container["network-bytes-out"],
+            "container_block_bytes_in": container["block-bytes-in"],
+            "container_block_bytes_out": container["block-bytes-out"],
+        }
+        output_arr.append(container_output)
     return output_arr
 
 def collectData(ip_list: list):
@@ -84,15 +89,16 @@ def collectData(ip_list: list):
         scraper_threads[i].join()
     
     # parsing data
-    parsed_data = []
+    output_arr = []
     for i in range(len(ip_list)):
         if raw_data[i] == None: continue
-        parsed_server_data = parseServerData(ip_list[i], raw_data[i])
-        parsed_container_data = parseContainerData(ip_list[i], raw_data[i])
-        parsed_data.append((raw_data[i]["hostname"], parsed_server_data, parsed_container_data))
+
+        server_data = parseServerData(ip_list[i], raw_data[i])
+        container_data = parseContainerData(ip_list[i], raw_data[i])
+        output_arr.append((raw_data[i]["hostname"], server_data, container_data))
     
 
-    return parsed_data
+    return output_arr
 
 if __name__ == "__main__":
     print("\n\n\nScraping:")
