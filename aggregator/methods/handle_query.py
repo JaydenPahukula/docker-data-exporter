@@ -1,20 +1,27 @@
 from datetime import datetime
 from collections import defaultdict
 import flask
+import os
 from subprocess import run
-import time
+import yaml
 
-BUCKET = "main"
+SERVER_BUCKET = ""
+CONTAINER_BUCKET = ""
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-
-# WARNING incomplete!!!!
 def get_hostnames():
-    queryString = f"""from(bucket: \"{BUCKET}\")
+    # reading config file
+    with open(os.path.dirname(CURRENT_DIR) + "/config.yaml", "r") as config_file:
+        config = yaml.safe_load(config_file)
+    SERVER_BUCKET = config["server-bucket-name"]
+    # query database
+    queryString = f"""from(bucket: \"{SERVER_BUCKET}\")
                        |> range(start:0)
                        |> keep(columns: [\"hostname\"])
                        |> distinct(column: \"hostname\")"""
     completedResponse = run(f"influx query \'{queryString}\' --raw", capture_output=True, shell=True)
+    # parse output
     lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n") if line != ""]
     return [line[4] for line in lines[4:]]
 
@@ -29,13 +36,20 @@ def handle_query(request):
     """
     
     """
+
+    # reading config file
+    with open(os.path.dirname(CURRENT_DIR) + "/config.yaml", "r") as config_file:
+        config = yaml.safe_load(config_file)
+    SERVER_BUCKET = config["server-bucket-name"]
+    CONTAINER_BUCKET = config["container-bucket-name"]
+
     startTime = request["range"]["from"]
     endTime = request["range"]["to"]
     output = []
     for target in request["targets"]:
 
         # query data from influxdb database
-        queryString = f'\'from(bucket: \"{BUCKET}\") |> range(start: {startTime}, stop: {endTime}) |> filter(fn: (r) => r._field==\"{target["target"]}\")\''
+        queryString = f'\'from(bucket: \"{SERVER_BUCKET}\") |> range(start: {startTime}, stop: {endTime}) |> filter(fn: (r) => r._field==\"{target["target"]}\")\''
         completedResponse = run("influx query " + queryString + " --raw", capture_output=True, shell=True)
         if completedResponse.stdout == b'\r\n':
             print("Error, got no data from database")
