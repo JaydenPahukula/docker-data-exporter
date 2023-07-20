@@ -61,7 +61,7 @@ def parseContainerData(ip: str, data: dict) -> list:
                 "container_image": container["image"],
                 "container_image_label": container["image-label"],
                 "container_user": container["user"],
-                "container_creation_time": datetime.fromtimestamp(container["created-at"]).isoformat(),
+                "container_creation_time": datetime.fromtimestamp(container["created-at"]).isoformat(sep=" "),
             },
             "container_state": container["state"],
             "container_cpu_percent": container["cpu-percent"],

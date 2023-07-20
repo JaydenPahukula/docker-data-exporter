@@ -12,7 +12,7 @@ echo done
 
 # start in home
 cd ~
-path=".docker-dash-agent"
+path=".docker-data-agent"
 
 
 # checking if dir exists
@@ -37,7 +37,7 @@ fi
 
 # downloading github repo
 echo -n "  > Downloading repository... "
-curl -sSLo ./repo.tar https://api.github.com/repos/JaydenPahukula/docker-dash-grafana-plugin/tarball
+curl -sSLo ./repo.tar https://api.github.com/repos/JaydenPahukula/docker-data-exporter/tarball
 echo done
 
 # extracting tar archive
@@ -93,10 +93,10 @@ echo done
 
 # configuring service
 echo -n "  > Configuring agent service... "
-sudo rm /etc/systemd/system/docker-dash-agent.service &> /dev/null
-sudo tee -a /etc/systemd/system/docker-dash-agent.service > /dev/null <<- END
+sudo rm /etc/systemd/system/docker-data-agent.service &> /dev/null
+sudo tee -a /etc/systemd/system/docker-data-agent.service > /dev/null <<- END
     [Unit]
-    Description=Docker dash grafana agent
+    Description=Docker data agent
     After=multi-user.target
     
     [Service]
@@ -108,10 +108,11 @@ sudo tee -a /etc/systemd/system/docker-dash-agent.service > /dev/null <<- END
     WantedBy=multi-user.target
 END
 sudo systemctl daemon-reload
-sudo systemctl enable docker-dash-agent.service &> /dev/null
-sudo systemctl start docker-dash-agent.service &> /dev/null
+sudo systemctl enable docker-data-agent.service &> /dev/null
+sudo systemctl start docker-data-agent.service &> /dev/null
+sleep 1
 echo done
 
 echo ""
 echo "Completed installation!"
-echo -e "Run \"systemctl status docker-dash-agent.service\" to verify the agent is running"
+echo -e "Run \"systemctl status docker-data-agent\" to verify the agent is running"
