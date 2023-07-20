@@ -56,18 +56,19 @@ def handle_query(request):
             return "Error, got no data from database"
         
         # parse lines
-        lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n")]
+        lines = [line.split(",") for line in completedResponse.stdout.decode().split("\r\n") if line != ""]
         datatype = lines[1][6]
 
+        print(target)
         # timeseries data
         if target["type"] == "timeserie":
 
             datapoints = defaultdict(lambda: [])
-            for line in lines[4:-2]:
+            for line in lines[4:]:
                 if datatype in ("long", "unsignedLong"):
                     datapoints[line[9]].append([int(line[6]), parse_time(line[5])])
                 elif datatype == "boolean":
-                    datapoints[line[9]].append([line[6] == "true", parse_time(line[5])])
+                    datapoints[line[9]].append([int(line[6] == "true"), parse_time(line[5])])
                 else:
                     datapoints[line[9]].append([line[6], parse_time(line[5])])
 
@@ -76,6 +77,17 @@ def handle_query(request):
         
         # table data
         else:
-            pass
+            table = {}
+            table["columns"] = [{"text":"Time", "type":"time"},
+                                {"text":"Hostname", "type":"string"},
+                                {"text":target["target"], "type":["string" if datatype == "string" else "number"]}]
+            if datatype in ("long", "unsignedLong"):
+                table["rows"] = [[parse_time(line[5]), line[9], int(line[6])] for line in lines[4:]]
+            if datatype == "boolean":
+                table["rows"] = [[parse_time(line[5]), line[9], int(line[6] == "true")] for line in lines[4:]]
+            else:
+                table["rows"] = [[parse_time(line[5]), line[9], line[6]] for line in lines[4:]]
+            
+            output.append(table)
 
     return flask.jsonify(output)
