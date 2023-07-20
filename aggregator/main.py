@@ -5,7 +5,7 @@ import sys
 import threading
 import yaml
 
-from methods.scrape import scraper
+from aggregator.methods.scraper import scraper
 from methods.handle_query import handle_query, get_hostnames
 
 SCRAPE_INTERVAL = 600 # (seconds)
