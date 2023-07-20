@@ -52,12 +52,12 @@ This API will also respond to a request to the base URL with a `200 OK` as a san
       "state": "exited",
       "status": "Exited (0) 24 hours ago",
       "created-at": 1689640559,
-      "cpu_percent": 0.00,
-      "mem_percent": 0.00,
-      "network-bytes-in": "0",
-      "network-bytes-out": "0",
-      "block-bytes-in": "0",
-      "block-bytes-out": "0"
+      "cpu-percent": 0.00,
+      "mem-percent": 0.00,
+      "network-bytes-in": 0,
+      "network-bytes-out": 0,
+      "block-bytes-in": 0,
+      "block-bytes-out": 0
     },
     {
       "id": "f08aaca7ab91",
@@ -68,12 +68,12 @@ This API will also respond to a request to the base URL with a `200 OK` as a san
       "state": "running",
       "status": "Up 27 minutes",
       "created-at": 1688777727,
-      "cpu_percent": 0.02,
-      "mem_percent": 0.19,
-      "network-bytes-in": "1.1k",
-      "network-bytes-out": "0",
-      "block-bytes-in": "16.1M",
-      "block-bytes-out": "0"
+      "cpu-percent": 0.02,
+      "mem-percent": 0.19,
+      "network-bytes-in": 1126,
+      "network-bytes-out": 0,
+      "block-bytes-in": 16986931,
+      "block-bytes-out": 0
     }
   ]
 }
