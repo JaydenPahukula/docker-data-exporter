@@ -19,8 +19,9 @@ def root():
 
 @app.route('/add-agent', methods=["POST"])
 def addagent():
-    # get ip address
     ip = flask.request.remote_addr
+    port = flask.request.args.get("port")
+    if port: ip += ":" + port
 
     # read file
     config = None
@@ -30,10 +31,8 @@ def addagent():
     # add ip address
     if "server-ips" in config:
         ip_set = set(config["server-ips"])
-        print(ip_set)
         ip_set.add(ip)
-        config["server-ips"] = list(ip_set)
-        print(config["server-ips"])
+        config["server-ips"] = sorted(list(ip_set))
     else:
         config["server-ips"] = [ip]
 
