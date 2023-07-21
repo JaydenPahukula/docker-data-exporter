@@ -1,64 +1,62 @@
-import flask
-from flask_cors import CORS, cross_origin
+from flask import Flask
 import os
 import sys
-import threading
 import yaml
 
-from methods.scrape import scraper
-from methods.handle_query import handle_query, get_hostnames
+from methods import scraper
 
-SCRAPE_INTERVAL = 600 # (seconds)
 IP_LIST = []
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = flask.Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app = Flask(__name__)
 
 
-@app.route('/', methods=["GET"])
-@cross_origin()
+@app.route('/')
 def root():
     return "OK"
 
-@app.route('/search', methods=["POST"])
-@cross_origin()
-def search():
-    if flask.request.json["target"] == "hostname":
-        return get_hostnames()
-    return '["hostname","docker-running","docker-version","swarm-mode","image-count","total-container-count","running-container-count"]'
 
-@app.route('/query', methods=["POST"])
-@cross_origin()
-def query():
-    return handle_query(flask.request.json)
+# prometheus data scrape
+@app.route('/metrics')
+def metrics():
+    metrics = []
+    json_data_list = scraper.collectData(IP_LIST)
+    for hostname, server_metrics, container_metrics_list in json_data_list:
+        # parse server metrics
+        for metric in server_metrics:
+            if type(server_metrics[metric]) == int:
+                metrics.append(f"{metric}{{hostname=\"{hostname}\"}} {server_metrics[metric]}\n")
+            else:
+                metrics.append(f"{metric}{{hostname=\"{hostname}\",{metric}=\"{server_metrics[metric]}\"}} 1\n")
+        
+        for container_metrics in container_metrics_list:
+            container_name = container_metrics["container_info"]["container_name"]
+            
+            # parse container info
+            container_info = [f"{key}=\"{value}\"" for key, value in container_metrics["container_info"].items()]
+            metrics.append(f"container_info{{hostname=\"{hostname}\",{','.join(container_info)}}} 1\n")
 
-@app.route('/tag-keys', methods=["POST"])
-@cross_origin()
-def tagkeys():
-    return flask.jsonify({"type":"string", "text":"hostname"})
+            # parse container metrics
+            for metric in container_metrics:
+                if metric == "container_info": continue
+                if type(container_metrics[metric]) == int:
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\"}} {container_metrics[metric]}\n")
+                else:
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\",{metric}=\"{container_metrics[metric]}\"}} 1\n")
+    
+    print(f"Returned data from {len(json_data_list)} agents")
+    return "".join(metrics)
 
-@app.route('/tag-values', methods=["POST"])
-@cross_origin()
-def tagvals():
-    if flask.request.json["key"] != "hostname":
-        return "invalid key"
-    return flask.jsonify({"text":hostname for hostname in get_hostnames()})
+
 
 if __name__ == '__main__':
     print("\n\n\n")
     
     print(" * Reading config file")
-    with open(CURRENT_DIR + "/config.yaml", "r") as config_file:
+    with open(CURRENT_DIR + "/aggregator_config.yaml", "r") as config_file:
         config = yaml.safe_load(config_file)
-
-    SCRAPE_INTERVAL = config["scrape-interval"]
     IP_LIST = config["server-ips"]
-
-    print(" * Starting scraper thread")
-    scraper_thread = threading.Thread(target=scraper, args=(IP_LIST, SCRAPE_INTERVAL), daemon=True)
-    scraper_thread.start()
+    print(f" * Aggregator is configured to read from {len(IP_LIST)} agents")
 
     port = 5000 # default port
     # getting port argument
