@@ -4,7 +4,7 @@ Docker Data Exporter is a set of tools for collecting data on Docker containers 
 
 ## Architecture:
 
-_\*insert image here\*_
+![Architecture diagram](./images/diagram.png)
 
 ### Agent:
 
