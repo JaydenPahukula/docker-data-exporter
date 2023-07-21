@@ -3,16 +3,51 @@ import os
 import sys
 import yaml
 
-# import methods.scraper
+from methods import scraper
 
 IP_LIST = []
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
-#app.wsgi_app = DispatcherMiddleware(app.wsgi_app, { '/metrics': make_wsgi_app() })
-@app.route('/metrics')
+
+
+@app.route('/')
 def root():
-    return "test_metric_1{hostname=\"examplehostname\"} 5\ntest_metric_1{hostname=\"hello\"} 7"
+    return "OK"
+
+
+# prometheus data scrape
+@app.route('/metrics')
+def metrics():
+    metrics = []
+    json_data_list = scraper.collectData(IP_LIST)
+    for hostname, server_metrics, container_metrics_list in json_data_list:
+        # parse server metrics
+        for metric in server_metrics:
+            if type(server_metrics[metric]) == int:
+                metrics.append(f"{metric}{{hostname=\"{hostname}\"}} {server_metrics[metric]}\n")
+            else:
+                metrics.append(f"{metric}{{hostname=\"{hostname}\",{metric}=\"{server_metrics[metric]}\"}} 1\n")
+        
+        for container_metrics in container_metrics_list:
+            container_name = container_metrics["container_info"]["container_name"]
+            
+            # parse container info
+            container_info = [f"{key}=\"{value}\"" for key, value in container_metrics["container_info"].items()]
+            metrics.append(f"container_info{{hostname=\"{hostname}\",{','.join(container_info)}}} 1\n")
+
+            # parse container metrics
+            for metric in container_metrics:
+                if metric == "container_info": continue
+                if type(container_metrics[metric]) == int:
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\"}} {container_metrics[metric]}\n")
+                else:
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\",{metric}=\"{container_metrics[metric]}\"}} 1\n")
+    
+    print(f"Returned data from {len(json_data_list)} agents")
+    return "".join(metrics)
+
+
 
 if __name__ == '__main__':
     print("\n\n\n")
@@ -21,6 +56,7 @@ if __name__ == '__main__':
     with open(CURRENT_DIR + "/aggregator_config.yaml", "r") as config_file:
         config = yaml.safe_load(config_file)
     IP_LIST = config["server-ips"]
+    print(f" * Aggregator is configured to read from {len(IP_LIST)} agents")
 
     port = 5000 # default port
     # getting port argument
