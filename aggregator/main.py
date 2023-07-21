@@ -29,7 +29,11 @@ def addagent():
     
     # add ip address
     if "server-ips" in config:
-        config["server-ips"].append(ip)
+        ip_set = set(config["server-ips"])
+        print(ip_set)
+        ip_set.add(ip)
+        config["server-ips"] = list(ip_set)
+        print(config["server-ips"])
     else:
         config["server-ips"] = [ip]
 
