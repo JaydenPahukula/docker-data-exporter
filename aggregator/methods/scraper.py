@@ -1,9 +1,7 @@
 from datetime import datetime
 import os
 import requests
-from subprocess import run
 import threading
-import time
 import yaml
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
