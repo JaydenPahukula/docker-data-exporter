@@ -1,14 +1,16 @@
-# Docker Dash Grafana Agent
+# Docker Data Agent
 
 ## Overview
 
-This agent functions as an API with one endpoint, `get-data`. This will return a JSON object with the all the available data. This agent is open on port 5050 by default after installation.
+This agent runs in the background and is responsible for providing data on the Docker instance running on the server when requested by the aggregator. Install it on any server that you wish to collect Docker data on (including the aggregator). The agent functions as an API with one endpoint, `get-data`. This will return a JSON object with the all the available data. This agent is open on port 5050 by default after installation.
+
+_Note: The agent can run even if Docker is not installed or running, but it won't return much useful information._
 
 ## Installation
 
 To install, just run the following command:
 ``` bash
-bash <(curl -s https://raw.githubusercontent.com/JaydenPahukula/docker-dash-grafana-plugin/main/agent/scripts/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/JaydenPahukula/docker-data-exporter/main/agent/scripts/install.sh)
 ```
 This will download the agent and all it's dependencies, then install docker-dash-agent as a systemd service listening on port 5050, which can then be managed using systemctl. For example, you can use the following command to restart the agent:
 ``` bash
@@ -18,6 +20,8 @@ Or to check the status of the agent
 ``` bash
 systemctl status docker-dash-agent.service
 ```
+
+</br>
 
 # API Documentation
 
