@@ -6,6 +6,7 @@ import yaml
 from methods import scraper
 
 IP_LIST = []
+CONFIG_FILE = "aggregator_config.yaml"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = flask.Flask(__name__)
@@ -13,12 +14,34 @@ app = flask.Flask(__name__)
 
 @app.route('/')
 def root():
-    return "OK"
+    return "OK\n"
 
 
 @app.route('/add-agent', methods=["POST"])
 def addagent():
-    return f"Successfully added agent {flask.request.remote_addr}"
+    # get ip address
+    ip = flask.request.remote_addr
+
+    # read file
+    config = None
+    with open(CONFIG_FILE, "r") as config_file:
+        config = yaml.safe_load(config_file)
+    
+    # add ip address
+    if "server-ips" in config:
+        config["server-ips"].append(ip)
+    else:
+        config["server-ips"] = [ip]
+
+    # write file
+    with open(CONFIG_FILE, "w") as config_file:
+        config_file.write(
+            "---\n" +
+            "# list of IP addresses to scrape\n" + 
+            yaml.dump(config) +
+            "...\n")
+    
+    return f"Successfully added agent {ip}\n"
 
 
 # prometheus data scrape
@@ -58,7 +81,7 @@ if __name__ == '__main__':
     print("\n\n\n")
     
     print(" * Reading config file")
-    with open(CURRENT_DIR + "/aggregator_config.yaml", "r") as config_file:
+    with open(CONFIG_FILE, "r") as config_file:
         config = yaml.safe_load(config_file)
     IP_LIST = config["server-ips"]
     print(f" * Aggregator is configured to read from {len(IP_LIST)} agents")
