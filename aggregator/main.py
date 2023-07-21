@@ -1,4 +1,4 @@
-from flask import Flask
+import flask
 import os
 import sys
 import yaml
@@ -8,7 +8,7 @@ from methods import scraper
 IP_LIST = []
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 
 @app.route('/')
@@ -16,8 +16,13 @@ def root():
     return "OK"
 
 
+@app.route('/add-agent', methods=["POST"])
+def addagent():
+    return f"Successfully added agent {flask.request.remote_addr}"
+
+
 # prometheus data scrape
-@app.route('/metrics')
+@app.route('/metrics', methods=["GET"])
 def metrics():
     metrics = []
     json_data_list = scraper.collectData(IP_LIST)
