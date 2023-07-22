@@ -35,14 +35,14 @@ def metrics():
             # parse container info
             container_info = [f"{key}=\"{value}\"" for key, value in container_metrics["container_info"].items()]
             metrics.append(f"container_info{{hostname=\"{hostname}\",{','.join(container_info)}}} 1\n")
-
+            
             # parse container metrics
             for metric in container_metrics:
                 if metric == "container_info": continue
                 if type(container_metrics[metric]) == int:
-                    metrics.append(f"{metric}{{hostname=\"{hostname}\"}} {container_metrics[metric]}\n")
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\",container_name=\"{container_name}\"}} {container_metrics[metric]}\n")
                 else:
-                    metrics.append(f"{metric}{{hostname=\"{hostname}\",{metric}=\"{container_metrics[metric]}\"}} 1\n")
+                    metrics.append(f"{metric}{{hostname=\"{hostname}\",container_name=\"{container_name}\",{metric}=\"{container_metrics[metric]}\"}} 1\n")
     
     print(f"Returned data from {len(json_data_list)} agents")
     return "".join(metrics)
