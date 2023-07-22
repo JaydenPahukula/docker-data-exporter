@@ -1,26 +1,62 @@
-from flask import Flask
+import flask
 import os
 import sys
 import yaml
 
 from methods import scraper
 
-IP_LIST = []
+
+CONFIG_FILE = "aggregator_config.yaml"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 
 @app.route('/')
 def root():
-    return "OK"
+    return "OK\n"
+
+
+@app.route('/add-agent', methods=["POST"])
+def addagent():
+    ip = flask.request.remote_addr
+    port = flask.request.args.get("port")
+    if port: ip += ":" + port
+
+    # read file
+    config = None
+    with open(CONFIG_FILE, "r") as config_file:
+        config = yaml.safe_load(config_file)
+    
+    # add ip address
+    if "server-ips" in config:
+        ip_set = set(config["server-ips"])
+        ip_set.add(ip)
+        config["server-ips"] = sorted(list(ip_set))
+    else:
+        config["server-ips"] = [ip]
+
+    # write file
+    with open(CONFIG_FILE, "w") as config_file:
+        config_file.write(
+            "---\n" +
+            "# list of IP addresses to scrape\n" + 
+            yaml.dump(config) +
+            "...\n")
+    
+    return f"Successfully added agent {ip}\n"
 
 
 # prometheus data scrape
-@app.route('/metrics')
+@app.route('/metrics', methods=["GET"])
 def metrics():
+    # read config file
+    with open(CONFIG_FILE, "r") as config_file:
+        config = yaml.safe_load(config_file)
+    ip_list = config["server-ips"]
+
     metrics = []
-    json_data_list = scraper.collectData(IP_LIST)
+    json_data_list = scraper.collectData(ip_list)
     for hostname, server_metrics, container_metrics_list in json_data_list:
         # parse server metrics
         for metric in server_metrics:
@@ -51,12 +87,6 @@ def metrics():
 
 if __name__ == '__main__':
     print("\n\n\n")
-    
-    print(" * Reading config file")
-    with open(CURRENT_DIR + "/aggregator_config.yaml", "r") as config_file:
-        config = yaml.safe_load(config_file)
-    IP_LIST = config["server-ips"]
-    print(f" * Aggregator is configured to read from {len(IP_LIST)} agents")
 
     port = 5000 # default port
     # getting port argument

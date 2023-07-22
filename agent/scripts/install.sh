@@ -19,7 +19,7 @@ path=".docker-data-agent"
 if [ -d "$path/" ]; then
     # prompting yes or no for overwrite
     while true; do
-        read -p "Directory \"$path/\" already exists, overwrite? (y/n) " yn
+        read -p "Directory \"$path/\" exists and will be overwritten, continue? (y/n) " yn
         case $yn in 
         [yY] ) 
             break
@@ -85,6 +85,23 @@ if [ "$(python3.9 --version 2>&1)" != "Python 3.9.16" ]; then
     sudo rm -rf Python-3.9.16
 fi
 echo done
+
+# add agent to aggregator
+ip=$1
+if [ ! -z "$ip" ]; then
+    echo -n "  > Attempting to configure aggregator at $ip... "
+    resp=$(curl -s -w "%{http_code}" -X POST "$ip/add-agent?port=5050")
+    if [ "${resp:(-3):3}" == "200" ]; then
+        echo "success"
+    else
+        echo "failed"
+        echo "Failed to add agent to aggregator configuration at $ip."
+        echo "You will need to manually add this agent's ip to 'server_ips' in 'aggregator_config.yaml' on the aggregator."
+    fi
+else
+    echo "  > No ip was provided, skipping aggregator configuration"
+    echo "You will need to manually add this agent's ip to 'server_ips' in 'aggregator_config.yaml' on the aggregator."
+fi
 
 # installing and configing systemd
 echo -n "  > Configuring systemd... "
