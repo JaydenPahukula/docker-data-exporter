@@ -5,7 +5,7 @@ import yaml
 
 from methods import scraper
 
-IP_LIST = []
+
 CONFIG_FILE = "aggregator_config.yaml"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -50,8 +50,13 @@ def addagent():
 # prometheus data scrape
 @app.route('/metrics', methods=["GET"])
 def metrics():
+    # read config file
+    with open(CONFIG_FILE, "r") as config_file:
+        config = yaml.safe_load(config_file)
+    ip_list = config["server-ips"]
+
     metrics = []
-    json_data_list = scraper.collectData(IP_LIST)
+    json_data_list = scraper.collectData(ip_list)
     for hostname, server_metrics, container_metrics_list in json_data_list:
         # parse server metrics
         for metric in server_metrics:
@@ -82,12 +87,6 @@ def metrics():
 
 if __name__ == '__main__':
     print("\n\n\n")
-    
-    print(" * Reading config file")
-    with open(CONFIG_FILE, "r") as config_file:
-        config = yaml.safe_load(config_file)
-    IP_LIST = config["server-ips"]
-    print(f" * Aggregator is configured to read from {len(IP_LIST)} agents")
 
     port = 5000 # default port
     # getting port argument
