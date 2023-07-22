@@ -2,17 +2,19 @@
 
 ## Overview
 
-This agent runs in the background and is responsible for providing data on the Docker instance running on the server when requested by the aggregator. Install it on any server that you wish to collect Docker data on (including the aggregator). The agent functions as an API with one endpoint, `get-data`. This will return a JSON object with the all the available data. This agent is open on port 5050 by default after installation.
+This agent runs in the background and is responsible for providing data on the Docker instance running on the server when requested by the aggregator. Install it on any server that you wish to collect Docker data on (including the aggregator). The agent functions as an API with one endpoint, `get-data`, that returns a JSON object with the all the available data. This agent is open on port 5050 by default after installation.
 
 _Note: The agent can run even if Docker is not installed or running, but it won't return much useful information._
 
 ## Installation
 
-To install, just run the following command:
+To install, run the following command:
 ``` bash
-bash <(curl -s https://raw.githubusercontent.com/JaydenPahukula/docker-data-exporter/main/agent/scripts/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/JaydenPahukula/docker-data-exporter/main/agent/scripts/install.sh) [AGGREGATOR_IP*]
 ```
-This will download the agent and all it's dependencies, then install docker-dash-agent as a systemd service listening on port 5050, which can then be managed using systemctl. For example, you can use the following command to restart the agent:
+_*Aggregator ip is optional_  
+This will run an install script that downloads the agent and dependencies and automatically configures everything. If the IP address of the aggregator is provided, it will try to contact and add itself to the aggregator. If it is unsuccessful or no IP is provided, you will have to add it manually. Do this by adding the server's IP address to `server_ips` in `aggregator_config.yaml` on the aggregator machine.  
+The script will install docker-dash-agent as a systemd service listening on port 5050, which can then be managed using systemctl. For example, you can use the following command to restart the agent:
 ``` bash
 systemctl restart docker-dash-agent.service
 ```
@@ -29,14 +31,14 @@ systemctl status docker-dash-agent.service
 
 To get data from the agent, send a GET request to the following endpoint:
 ```
-http://placeholder.url/get-data
+<GET> http://placeholder.url/get-data
 ```
 
 This API will also respond to a request to the base URL with a `200 OK` as a sanity check.
 
 ## Example Responses
 
-### Standard
+### Standard:
 ``` JSON
 {
   "hostname": "localhost.server4",
