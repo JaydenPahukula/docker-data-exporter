@@ -1,4 +1,5 @@
 import flask
+import json
 import os
 import sys
 import yaml
@@ -7,6 +8,7 @@ from methods import scraper
 
 
 CONFIG_FILE = "aggregator_config.yaml"
+HOSTNAME_FILE = ".known_hostnames"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = flask.Flask(__name__)
@@ -54,10 +56,23 @@ def metrics():
     with open(CONFIG_FILE, "r") as config_file:
         config = yaml.safe_load(config_file)
     ip_list = config["server-ips"]
+    # read hostnames file
+    with open(HOSTNAME_FILE, "r") as hostname_file:
+        known_hostnames = json.loads(hostname_file.read())
 
     metrics = []
+    offline_ips = [x for x in ip_list]
     json_data_list = scraper.collectData(ip_list)
     for hostname, server_metrics, container_metrics_list in json_data_list:
+        ip = server_metrics["server_ip"]
+
+        # add hostname if not already known
+        if ip not in known_hostnames: known_hostnames[ip] = hostname
+
+        # remove ip from offline list
+        offline_ips.remove(ip)
+        metrics.append(f"server_online{{hostname=\"{hostname}\"}} 1\n")
+
         # parse server metrics
         for metric in server_metrics:
             if type(server_metrics[metric]) == int:
@@ -79,7 +94,17 @@ def metrics():
                     metrics.append(f"{metric}{{hostname=\"{hostname}\",container_name=\"{container_name}\"}} {container_metrics[metric]}\n")
                 else:
                     metrics.append(f"{metric}{{hostname=\"{hostname}\",container_name=\"{container_name}\",{metric}=\"{container_metrics[metric]}\"}} 1\n")
-    
+
+    # any ip still here is offline/unreachable
+    for ip in offline_ips:
+        if ip in known_hostnames:
+            hostname = known_hostnames[ip]
+            metrics.append(f"server_online{{hostname=\"{hostname}\"}} 0\n")
+
+    # write known hostnames
+    with open(HOSTNAME_FILE, "w") as hostname_file:
+        hostname_file.write(json.dumps(known_hostnames))
+
     print(f"Returned data from {len(json_data_list)} agents")
     return "".join(metrics)
 
