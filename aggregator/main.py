@@ -57,8 +57,13 @@ def metrics():
         config = yaml.safe_load(config_file)
     ip_list = config["server-ips"]
     # read hostnames file
-    with open(HOSTNAME_FILE, "r") as hostname_file:
-        known_hostnames = json.loads(hostname_file.read())
+    known_hostnames = {}
+    print(f"{CURRENT_DIR}/{HOSTNAME_FILE}")
+    if os.path.exists(f"{CURRENT_DIR}/{HOSTNAME_FILE}"):
+        with open(f"{CURRENT_DIR}/{HOSTNAME_FILE}", "r") as hostname_file:
+            raw_file = hostname_file.read()
+        if raw_file:
+            known_hostnames = json.loads(raw_file)
 
     metrics = []
     offline_ips = [x for x in ip_list]
@@ -108,7 +113,10 @@ def metrics():
     print(f"Returned data from {len(json_data_list)} agents")
     return "".join(metrics)
 
-
+@app.route("/command/<command_str>")
+def handleCommands(command_str):
+    print(command_str)
+    return flask.make_response("OK", 200)
 
 if __name__ == '__main__':
     print("\n\n\n")
