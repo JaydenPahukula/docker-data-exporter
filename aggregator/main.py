@@ -99,7 +99,7 @@ def metrics():
     for ip in offline_ips:
         if ip in known_hostnames:
             hostname = known_hostnames[ip]
-            metrics.append(f"server_online{{hostname=\"{hostname}\"}} 0\n")
+            metrics.append(f"server_online{{hostname=\"{hostname}\"}} 2\n")
 
     # write known hostnames
     with open(HOSTNAME_FILE, "w") as hostname_file:
