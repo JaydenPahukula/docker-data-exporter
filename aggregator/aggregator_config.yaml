@@ -1,5 +1,7 @@
 ---
 # list of IP addresses to scrape
 server-ips:
+- 10.0.2.8
+- 10.0.2.6:5050
 - 127.0.0.1:5050
 ...
