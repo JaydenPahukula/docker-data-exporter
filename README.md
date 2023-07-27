@@ -29,7 +29,7 @@ There are two types of data collected, server data and container data. Note that
 | server_agent_running | | 1 | |
 | server_docker_running | | 1 or 0 | |
 | server_docker_version | server_docker_version="VERSION" | 1 | |
-| server_swarm_mode | | 1 or 0 | See [Docker swarm mode overview](#https://docs.docker.com/engine/swarm/) |
+| server_swarm_mode | | 1 or 0 | See [Docker swarm mode overview](https://docs.docker.com/engine/swarm/) |
 | server_image_count | | ≥ 0 |
 | server_total_container_count | | ≥ 0 | |
 | server_running_container_count | | ≥ 0 | |
