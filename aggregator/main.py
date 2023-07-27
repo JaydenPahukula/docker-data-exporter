@@ -13,7 +13,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = flask.Flask(__name__)
 
-
 @app.route('/')
 def root():
     return "OK\n"
@@ -58,7 +57,6 @@ def metrics():
     ip_list = config["server-ips"]
     # read hostnames file
     known_hostnames = {}
-    print(f"{CURRENT_DIR}/{HOSTNAME_FILE}")
     if os.path.exists(f"{CURRENT_DIR}/{HOSTNAME_FILE}"):
         with open(f"{CURRENT_DIR}/{HOSTNAME_FILE}", "r") as hostname_file:
             raw_file = hostname_file.read()
@@ -113,10 +111,16 @@ def metrics():
     print(f"Returned data from {len(json_data_list)} agents")
     return "".join(metrics)
 
-@app.route("/command/<command_str>")
-def handleCommands(command_str):
-    print(command_str)
-    return flask.make_response("OK", 200)
+@app.route("/command/<cmd_str>", methods=["POST"])
+def handleCommands(cmd_str="no command given"):
+    
+    print("received req:", cmd_str)
+    print(flask.request)
+    print(flask.request.headers)
+    print(flask.request.data)
+    response = flask.make_response()
+    response.status_code = 204
+    return response
 
 if __name__ == '__main__':
     print("\n\n\n")
