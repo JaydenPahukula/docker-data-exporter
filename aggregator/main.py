@@ -1,6 +1,7 @@
 import flask
 import json
 import os
+from requests import post
 import sys
 import yaml
 
@@ -11,8 +12,9 @@ CONFIG_FILE = "aggregator_config.yaml"
 HOSTNAME_FILE = ".known_hostnames"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = flask.Flask(__name__)
+known_containers = {}
 
+app = flask.Flask(__name__)
 
 @app.route('/')
 def root():
@@ -57,8 +59,12 @@ def metrics():
         config = yaml.safe_load(config_file)
     ip_list = config["server-ips"]
     # read hostnames file
-    with open(HOSTNAME_FILE, "r") as hostname_file:
-        known_hostnames = json.loads(hostname_file.read())
+    known_hostnames = {}
+    if os.path.exists(f"{CURRENT_DIR}/{HOSTNAME_FILE}"):
+        with open(f"{CURRENT_DIR}/{HOSTNAME_FILE}", "r") as hostname_file:
+            raw_file = hostname_file.read()
+        if raw_file:
+            known_hostnames = json.loads(raw_file)
 
     metrics = []
     offline_ips = [x for x in ip_list]
@@ -82,6 +88,9 @@ def metrics():
         
         for container_metrics in container_metrics_list:
             container_name = container_metrics["container_info"]["container_name"]
+
+            # add/update known_containers
+            known_containers[container_name] = ip
             
             # parse container info
             container_info = [f"{key}=\"{value}\"" for key, value in container_metrics["container_info"].items()]
@@ -108,6 +117,29 @@ def metrics():
     print(f"Returned data from {len(json_data_list)} agents")
     return "".join(metrics)
 
+@app.route("/command/<cmd_str>", methods=["POST"])
+def handleCommands(cmd_str="no command given"):
+    print("received req:", cmd_str)
+    container_list = flask.request.data.decode().strip("}").strip("{").split(",")
+
+    output = ""
+    failed = False
+    for container in container_list:
+        if container in known_containers:
+            ip = known_containers[container]
+            response = post(f"http://{ip}/command/{cmd_str}?container={container}")
+            if response.status_code in (200, 204):
+                output += f"{container} -> success"
+            else:
+                output += f"{container} -> failed: {response.text}"
+                failed = True
+        else:
+            output += f"{container} -> couldn't find ip address"
+            failed = True
+    
+    print(output)
+    if failed: return flask.make_response(output, 200)
+    else:      return flask.make_response(output, 500)
 
 
 if __name__ == '__main__':
