@@ -1,6 +1,7 @@
 import flask
 import json
 import os
+from requests import post
 import sys
 import yaml
 
@@ -10,6 +11,8 @@ from methods import scraper
 CONFIG_FILE = "aggregator_config.yaml"
 HOSTNAME_FILE = ".known_hostnames"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+known_containers = {}
 
 app = flask.Flask(__name__)
 
@@ -85,6 +88,9 @@ def metrics():
         
         for container_metrics in container_metrics_list:
             container_name = container_metrics["container_info"]["container_name"]
+
+            # add/update known_containers
+            known_containers[container_name] = ip
             
             # parse container info
             container_info = [f"{key}=\"{value}\"" for key, value in container_metrics["container_info"].items()]
@@ -113,14 +119,28 @@ def metrics():
 
 @app.route("/command/<cmd_str>", methods=["POST"])
 def handleCommands(cmd_str="no command given"):
-    
     print("received req:", cmd_str)
-    print(flask.request)
-    print(flask.request.headers)
-    print(flask.request.data)
-    response = flask.make_response()
-    response.status_code = 204
-    return response
+    container_list = flask.request.data.decode().strip("}").strip("{").split(",")
+
+    output = ""
+    failed = False
+    for container in container_list:
+        if container in known_containers:
+            ip = known_containers[container]
+            response = post(f"http://{ip}/command/{cmd_str}?container={container}")
+            if response.status_code in (200, 204):
+                output += f"{container} -> success"
+            else:
+                output += f"{container} -> failed: {response.text}"
+                failed = True
+        else:
+            output += f"{container} -> couldn't find ip address"
+            failed = True
+    
+    print(output)
+    if failed: return flask.make_response(output, 200)
+    else:      return flask.make_response(output, 500)
+
 
 if __name__ == '__main__':
     print("\n\n\n")
