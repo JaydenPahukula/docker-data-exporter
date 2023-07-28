@@ -89,11 +89,12 @@ def getData():
 @app.route("/command/<cmd_str>", methods=["POST"])
 def handleCommands(cmd_str="no command given"):
     container_name = flask.request.args.get("container")
-
-    completed_command = subprocessRun(f"docker {cmd_str} {container_name}")
-    if completed_command.returncode == 0:
-        return flask.make_response("", 204)
-    return flask.make_response(completed_command.stdout.decode()+completed_command.stderr.decode(), 500)
+    if cmd_str in ("start", "stop", "pause", "unpause", "restart", "kill"): # security :)
+        completed_command = subprocessRun(f"docker {cmd_str} {container_name}")
+        if completed_command.returncode == 0:
+            return flask.make_response("", 204)
+        return flask.make_response(completed_command.stdout.decode()+completed_command.stderr.decode(), 500)
+    return flask.make_response("Invalid Command", 400)
 
 
 if __name__ == '__main__':
