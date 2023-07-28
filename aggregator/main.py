@@ -1,4 +1,5 @@
 import flask
+from flask_cors import CORS, cross_origin
 import json
 import os
 from requests import post
@@ -118,8 +119,9 @@ def metrics():
     return "".join(metrics)
 
 @app.route("/command/<cmd_str>", methods=["POST"])
+@cross_origin()
 def handleCommands(cmd_str="no command given"):
-    print("received req:", cmd_str)
+    print("Received request:", cmd_str)
     container_list = flask.request.data.decode().strip("}").strip("{").split(",")
 
     output = ""
@@ -129,17 +131,20 @@ def handleCommands(cmd_str="no command given"):
             ip = known_containers[container]
             response = post(f"http://{ip}/command/{cmd_str}?container={container}")
             if response.status_code in (200, 204):
-                output += f"{container} -> success"
+                output += f"  {container} -> success"
             else:
-                output += f"{container} -> failed: {response.text}"
+                output += f"  {container} -> failed: {response.text}"
                 failed = True
         else:
-            output += f"{container} -> couldn't find ip address"
+            output += f"  {container} -> couldn't find ip address"
             failed = True
     
     print(output)
-    if failed: return flask.make_response(output, 200)
-    else:      return flask.make_response(output, 500)
+    response = flask.make_response(output)
+    if failed: response.status_code = 500
+    else:      response.status_code = 200
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
 if __name__ == '__main__':
