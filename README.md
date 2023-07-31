@@ -10,7 +10,7 @@ Docker Data Exporter is a set of tools for collecting data on Docker containers 
 
 ### Agent:
 
-The agent is installed on any server that you wish to track Docker data on. It is where all the data originates from, and it returns the data upon request. Learn more about the agent and how to install it [here](./agent/README.md).
+The agent is installed on any server that you wish to track Docker data on. It is where all the data originates from, and it returns the data upon request. It has one endpoint that returns a singular JSON object when the aggregator periodically scrapes. Learn more about the agent, it's data and how to install it at the [agent README.md](./agent/README.md).
 
 ### Aggregator:
 
