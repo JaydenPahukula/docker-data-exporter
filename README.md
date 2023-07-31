@@ -2,6 +2,9 @@
 
 Docker Data Exporter is a set of tools for collecting data on Docker containers and storing it in a Prometheus database. It can be installed on many servers at once, and collects data like engine info, container counts, and statuses of each container. The purpose of this project is to be able to use a Grafana Dashboard to monitor server and container statistics.
 
+Here is a snapshot of an example Grafana Dashboard that was created using this project as well as the default Grafana Cloud Linux Server datasource:
+https://jaydenp.grafana.net/dashboard/snapshot/S6ezcCcbcjVczckuZOTCTqtnRURUo9TK?orgId=1&from=1690308916851&to=1690319716851
+
 ## Architecture:
 
 ![Architecture diagram](./images/diagram.png)
