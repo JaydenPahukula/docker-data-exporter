@@ -6,6 +6,8 @@ Docker Data Exporter is a set of tools for collecting data on Docker containers 
 
 ![Architecture diagram](./images/diagram.png)
 
+*(This diagram depicts our approach using a Grafana Cloud instance, as opposed to a self-hosted instance, where the architechture may look different)*
+
 ### Agent:
 
 The agent is installed on any server that you wish to track Docker data on. It is where all the data originates from, and it returns the data upon request. Learn more about the agent and how to install it [here](./agent/README.md).
@@ -43,4 +45,4 @@ There are two types of data collected, server data and container data. Note that
 | container_block_bytes_in | | ≥ 0 | |
 | container_block_bytes_out | | ≥ 0 | |
 
-_*Every metric includes labels server_hostname="HOSTNAME" and instance="HOSTNAME, and container metrics also include container_name="NAME"_
+_*Every metric includes the label server_hostname="HOSTNAME" and a duplicate label instance="HOSTNAME" (made for ease of use in grafana). Container metrics also include container_name="NAME"_
