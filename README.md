@@ -10,12 +10,12 @@ Docker Data Exporter is a set of tools for collecting data on Docker containers 
 
 ### Agent:
 
-The agent is installed on any server that you wish to track Docker data on. It is where all the data originates from, and it returns the data upon request. It has one endpoint that returns a singular JSON object when the aggregator periodically scrapes. Learn more about the agent, it's data and how to install it at the [agent README.md](./agent/README.md).
+The agent is installed on any server that you wish to track Docker data on. It is where all the data originates from, and it returns the data upon request. It has an endpoint that returns a singular JSON object when the aggregator periodically scrapes. It also receives commands from the aggregator and executes them on the appropriate containers. Learn more about the agent, it's functionality and how to install it at the [agent README.md](./agent/README.md).
 
 ### Aggregator:
 
 The aggregator is the middle man between Prometheus and the individual agents. Prometheus will periodically query the aggregator, then the aggregator scrapes its known list of IP addresses, and collects all the data and gives it to Prometheus.  
-The purpose of the aggregator is to manage the agents, so Prometheus only has to scrape one target. If a server is offline, the aggregator can handle it so that Prometheus isn't stuck with empty values, and the user can know that it is down. But beware, the aggregator is a single point of failure, meaning that if it goes down, no data from any server will reach Prometheus. Learn more about the aggregator and how to install it [here](./aggregator/README.md).
+The purpose of the aggregator is to manage the agents, so Prometheus only has to scrape one target. If a server is offline, the aggregator can handle it so that Prometheus isn't stuck with empty values, and the user can know that it is down. But beware, the aggregator is a single point of failure, meaning that if it goes down, no data from any server will reach Prometheus. The aggregator also receives commands from the control panel and forwards them to the appropiate servers to execute. Learn more about the aggregator and how to install it at the [aggregator README.md](./aggregator/README.md).
 
 </br>
 
