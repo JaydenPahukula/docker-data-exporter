@@ -131,15 +131,15 @@ def handleCommands(cmd_str="no command given"):
             ip = known_containers[container]
             response = post(f"http://{ip}/command/{cmd_str}?container={container}")
             if response.status_code in (200, 204):
-                output += f"  {container} -> success"
+                output += f"  {container} -> success\n"
             else:
-                output += f"  {container} -> failed: {response.text}"
+                output += f"  {container} -> failed: {response.text}\n"
                 failed = True
         else:
-            output += f"  {container} -> couldn't find ip address"
+            output += f"  {container} -> couldn't find ip address\n"
             failed = True
     
-    print(output)
+    print(output, end="")
     response = flask.make_response(output)
     if failed: response.status_code = 500
     else:      response.status_code = 200
