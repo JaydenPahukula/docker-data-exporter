@@ -1,5 +1,5 @@
 import flask
-from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
 import json
 import os
 from requests import post
